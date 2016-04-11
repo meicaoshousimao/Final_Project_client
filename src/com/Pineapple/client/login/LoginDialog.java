@@ -2,15 +2,14 @@ package com.Pineapple.client.login;
 
 import java.awt.*;
 
+
 import java.awt.event.*;
 import javax.swing.*;
 import com.Pineapple.client.*;
+import com.Pineapple.client.dao.DBHelper;
 
 //登录对话框类
 public class LoginDialog extends JFrame {
-	
-	private String USERNAME = "Admin";
-	private String PASSWORD = "1234";
 	
 	private static final long serialVersionUID = 1L;
 	private LoginPanel loginPanel = null;
@@ -117,30 +116,14 @@ public class LoginDialog extends JFrame {
 				public void actionPerformed(ActionEvent e) {
 					try {
 						userStr = userField.getText();
-						String passStr = new String(passwordField
-								.getPassword());
-						//验证用户名
-						if (!userStr.equals(USERNAME)){
-							JOptionPane.showMessageDialog(LoginDialog.this,
-									"Username is incorrect!", "Login failed",
-									JOptionPane.ERROR_MESSAGE);
-							return;
-								
-						}
-						//验证密码
-						if (!passStr.equals(PASSWORD)){
-							JOptionPane.showMessageDialog(LoginDialog.this,
-									"Password is incorrect!", "Login failed",
-									JOptionPane.ERROR_MESSAGE);
-							return;
-								
-						}
-					/*	if (!Dao.checkLogin(userStr, passStr)) {
+						char[] passStr = passwordField.getPassword();
+						
+						if ((!DBHelper.exists(userStr))||(!DBHelper.check(userStr, passStr))) {
 							JOptionPane.showMessageDialog(LoginDialog.this,
 									"用户名与密码无法登录", "登录失败",
 									JOptionPane.ERROR_MESSAGE);
 							return;
-						}*/
+						}
 					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
