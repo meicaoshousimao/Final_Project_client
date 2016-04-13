@@ -118,20 +118,28 @@ public class LoginDialog extends JFrame {
 						userStr = userField.getText();
 						char[] passStr = passwordField.getPassword();
 						
-						if ((!DBHelper.exists(userStr))||(!DBHelper.check(userStr, passStr))) {
+						if (!DBHelper.exists(userStr)) {
 							JOptionPane.showMessageDialog(LoginDialog.this,
-									"用户名与密码无法登录", "登录失败",
+									"Error: Username does't exist.", "Login failed",
 									JOptionPane.ERROR_MESSAGE);
 							return;
 						}
+						
+						if (!DBHelper.check(userStr, passStr)) {
+									JOptionPane.showMessageDialog(LoginDialog.this,
+											"Error: Incorrect Password.", "Login failed",
+											JOptionPane.ERROR_MESSAGE);
+									return;
+								}
+						
 					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
-					//以下操作和登录按钮有什么关系？
+					//以下操作和登录按钮有什么关系？答：判断登录成功后弹出主窗口，并关闭登录窗口
 					mainFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);//主界面的小红叉执行退出操作
 					mainFrame.setVisible(true);//显示主框架
 					MainFrame.getCzyStateLabel().setText(userStr);
-					setVisible(false);//关闭主框架
+					setVisible(false);//关闭登录窗口
 				}
 			});
 			
@@ -149,7 +157,7 @@ public class LoginDialog extends JFrame {
 			exitButton = new JButton();
 			exitButton.setBounds(new Rectangle(181, 114, 48, 20));
 			exitButton.setIcon(new ImageIcon(getClass().getResource(
-					"/res/exitButton.jpg")));
+					"/res/signupButton.jpg")));
 			exitButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					System.exit(0);
