@@ -5,6 +5,10 @@ import java.awt.*;
 
 
 import java.awt.event.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.net.Socket;
+
 import javax.swing.*;
 import com.Pineapple.client.*;
 import com.Pineapple.client.dao.DBHelper;
@@ -23,10 +27,15 @@ public class LoginDialog extends JFrame {
 	private static String userStr;
 	private MainFrame mainFrame;//主框架类
 	private SignupDialog signup;
+	
+	private Socket socketClient;
+	private DataInputStream in;
+	private DataOutputStream out;
 
 	
 	//构造方法
-	public LoginDialog() {
+	public LoginDialog(Socket socketClient) {
+		this.socketClient = socketClient;
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());//设置界面效果
 			mainFrame = new MainFrame();//构造主框架
@@ -113,14 +122,30 @@ public class LoginDialog extends JFrame {
 			loginButton.setBounds(new Rectangle(109, 114, 48, 20));
 			loginButton.setIcon(new ImageIcon(getClass().getResource(
 					"/res/loginButton.jpg")));//设置登录按钮图标
+			
+			
 			//为登录按钮增加事件监听，监听方法是：提取用户名输入字符串；提取用户密码字符串；向数据库对比用户名和密码
 			loginButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					try {
 						userStr = userField.getText();
-						char[] passStr = passwordField.getPassword();
+						String passStr = String.valueOf(passwordField.getPassword());
+						//char[] passStr = passwordField.getPassword();
+						in = new DataInputStream(socketClient.getInputStream());  
+			            out = new DataOutputStream(socketClient.getOutputStream());  
+			            out.writeUTF("LOGIN");
+			            out.flush();
+			            out.writeUTF(userStr);
+			            out.flush();
+			            out.writeUTF(passStr);
+			            out.flush();
+			            
+			            			            			           			     			  			            
+			            //socketClient.close();
+			            System.out.println("客户端实验结束");
 						
-						if (!DBHelper.exists(userStr)) {
+						
+			/*			if (!DBHelper.exists(userStr)) {
 							JOptionPane.showMessageDialog(LoginDialog.this,
 									"Error: Username does't exist.", "Login failed",
 									JOptionPane.ERROR_MESSAGE);
@@ -132,7 +157,7 @@ public class LoginDialog extends JFrame {
 											"Error: Incorrect Password.", "Login failed",
 											JOptionPane.ERROR_MESSAGE);
 									return;
-								}
+								}*/
 						
 					} catch (Exception e1) {
 						e1.printStackTrace();

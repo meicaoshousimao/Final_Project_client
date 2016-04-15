@@ -4,6 +4,11 @@ import static java.awt.BorderLayout.*;
 
 import static javax.swing.border.BevelBorder.*;
 import java.awt.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.Date;
 import javax.swing.*;
 
@@ -22,15 +27,20 @@ public class MainFrame extends JFrame {
 	private JSeparator jSeparator1 = null;
 	private static JLabel czyStateLabel = null;
 	private JSeparator jSeparator2 = null;
+	/////////////////////////////////////////////通信部分////////////////////////////
+	 private Socket socketClient;
+	 DataOutputStream out = null;
+	 DataInputStream in = null;
 	
 	/**
 	 * 程序主方法，运行程序的入口
 	 * 
 	 * @param args
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException{
+		Socket socketClient = new Socket(InetAddress.getLocalHost(), 8889);
 		SplashScreen splashScreen = SplashScreen.getSplashScreen();//？？获取闪屏对象
-		JFrame login = new LoginDialog();
+		LoginDialog login = new LoginDialog(socketClient);
 		//如果不闪屏的话执行以下操作
 		if (splashScreen != null) {
 			try {
