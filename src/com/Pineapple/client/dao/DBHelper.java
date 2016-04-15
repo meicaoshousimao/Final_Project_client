@@ -14,7 +14,7 @@ import com.Pineapple.client.dao.model.Client;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 public class DBHelper implements DBConfig {
-	/*
+	/**
      * 使用MySQL数据源获得数据库连接对象
      *
      * @return：MySQL连接对象，如果获得失败返回null
@@ -29,11 +29,12 @@ public class DBHelper implements DBConfig {
             return mds.getConnection();// 获得连接（返回值是一个数据库连接对象）
         } catch (SQLException e) {
             e.printStackTrace();
+            
         }
         return null;// 如果获取失败就返回null
     }
     
-    /*
+    /**
      * 判断指定用户名的用户是否存在
      *
      * @return：如果存在返回true，不存在或者查询失败返回false
@@ -57,7 +58,7 @@ public class DBHelper implements DBConfig {
         }
         return false;// 如果发生异常返回false
     }
-    /*
+    /**
      * 验证用户名和密码是否正确 使用Commons Lang组件转义字符串避免SQL注入
      *
      * @return：如果正确返回true，错误返回false
@@ -87,7 +88,7 @@ public class DBHelper implements DBConfig {
         }
         return false;// 如果发生异常返回false
     }
-    /*
+    /**
      * 保存用户输入的注册信息
      *
      * @return：如果保存成功返回true，保存失败返回false

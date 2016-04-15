@@ -3,6 +3,7 @@ package com.Pineapple.client.login;
 import java.awt.*;
 
 
+
 import java.awt.event.*;
 import javax.swing.*;
 import com.Pineapple.client.*;
@@ -21,6 +22,7 @@ public class LoginDialog extends JFrame {
 	private JButton exitButton = null;
 	private static String userStr;
 	private MainFrame mainFrame;//主框架类
+	private SignupDialog signup;
 
 	
 	//构造方法
@@ -138,7 +140,7 @@ public class LoginDialog extends JFrame {
 					//以下操作和登录按钮有什么关系？答：判断登录成功后弹出主窗口，并关闭登录窗口
 					mainFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);//主界面的小红叉执行退出操作
 					mainFrame.setVisible(true);//显示主框架
-					MainFrame.getCzyStateLabel().setText(userStr);
+					MainFrame.getCzyStateLabel().setText(userStr);//状态栏信息更改
 					setVisible(false);//关闭登录窗口
 				}
 			});
@@ -148,7 +150,7 @@ public class LoginDialog extends JFrame {
 	}
 	
 	/**
-	 * This method initializes exitButton，初始化退出按钮
+	 * This method initializes signupButton，初始化注册按钮
 	 * 
 	 * @return javax.swing.JButton
 	 */
@@ -160,7 +162,11 @@ public class LoginDialog extends JFrame {
 					"/res/signupButton.jpg")));
 			exitButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					System.exit(0);
+					setVisible(false);//关闭登录窗口
+					////////////////////////////跳转注册页面///////////////////////////////////
+					SignupDialog signup = new SignupDialog();
+					signup.setDefaultCloseOperation(EXIT_ON_CLOSE);
+					signup.setVisible(true);//使signup界面可见
 				}
 			});
 		}
