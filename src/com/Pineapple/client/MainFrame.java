@@ -2,6 +2,7 @@ package com.Pineapple.client;
 
 import static java.awt.BorderLayout.*;
 
+
 import static javax.swing.border.BevelBorder.*;
 import java.awt.*;
 import java.io.DataInputStream;
@@ -9,6 +10,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Date;
 import javax.swing.*;
 
@@ -28,7 +30,7 @@ public class MainFrame extends JFrame {
 	private static JLabel czyStateLabel = null;
 	private JSeparator jSeparator2 = null;
 	/////////////////////////////////////////////通信部分////////////////////////////
-	 private Socket socketClient;
+	 public Socket socketClient;
 	 DataOutputStream out = null;
 	 DataInputStream in = null;
 	
@@ -36,9 +38,13 @@ public class MainFrame extends JFrame {
 	 * 程序主方法，运行程序的入口
 	 * 
 	 * @param args
+	 * @throws IOException 
+	 * 
 	 */
-	public static void main(String[] args) throws IOException{
+	public static void main(String[] args) throws  IOException{
+		
 		Socket socketClient = new Socket(InetAddress.getLocalHost(), 8889);
+		
 		SplashScreen splashScreen = SplashScreen.getSplashScreen();//？？获取闪屏对象
 		LoginDialog login = new LoginDialog(socketClient);
 		//如果不闪屏的话执行以下操作
@@ -51,7 +57,9 @@ public class MainFrame extends JFrame {
 		}
 		login.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		login.setVisible(true);//使login界面可见
+		
 	}
+	
 	
 	/**
 	 * This method initializes jJToolBarBar

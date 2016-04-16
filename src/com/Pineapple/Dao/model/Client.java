@@ -1,6 +1,9 @@
-package com.Pineapple.client.dao.model;
+package com.Pineapple.Dao.model;
 
-public class Client {
+import java.io.Serializable;
+
+public class Client implements Serializable{
+	private static final long serialVersionUID = 1L;
     private int id;// 编号
     private String username;// 用户名
     private String password;// 密码

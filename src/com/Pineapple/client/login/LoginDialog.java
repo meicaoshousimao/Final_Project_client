@@ -11,7 +11,7 @@ import java.net.Socket;
 
 import javax.swing.*;
 import com.Pineapple.client.*;
-import com.Pineapple.client.dao.DBHelper;
+;
 
 //登录对话框类
 public class LoginDialog extends JFrame {
@@ -139,29 +139,31 @@ public class LoginDialog extends JFrame {
 			            out.flush();
 			            out.writeUTF(passStr);
 			            out.flush();
-			            
-			            			            			           			     			  			            
-			            //socketClient.close();
-			            System.out.println("客户端实验结束");
-						
-						
-			/*			if (!DBHelper.exists(userStr)) {
+			            String exist = in.readUTF();
+			            System.out.println(exist);
+			            		            
+			            if (exist.equals("false")) {
 							JOptionPane.showMessageDialog(LoginDialog.this,
 									"Error: Username does't exist.", "Login failed",
 									JOptionPane.ERROR_MESSAGE);
 							return;
 						}
-						
-						if (!DBHelper.check(userStr, passStr)) {
-									JOptionPane.showMessageDialog(LoginDialog.this,
-											"Error: Incorrect Password.", "Login failed",
-											JOptionPane.ERROR_MESSAGE);
-									return;
-								}*/
-						
-					} catch (Exception e1) {
+			            String check = in.readUTF();
+			            System.out.println(check);	
+			            if (check.equals("false")) {
+							JOptionPane.showMessageDialog(LoginDialog.this,
+									"Error: Incorrect Password.", "Login failed",
+									JOptionPane.ERROR_MESSAGE);
+							return;
+			            }
+			            
+			           } catch (Exception e1) {
 						e1.printStackTrace();
-					}
+					} 
+			            			            			           			     			  			            
+			        
+						
+					
 					//以下操作和登录按钮有什么关系？答：判断登录成功后弹出主窗口，并关闭登录窗口
 					mainFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);//主界面的小红叉执行退出操作
 					mainFrame.setVisible(true);//显示主框架
@@ -189,7 +191,7 @@ public class LoginDialog extends JFrame {
 				public void actionPerformed(ActionEvent e) {
 					setVisible(false);//关闭登录窗口
 					////////////////////////////跳转注册页面///////////////////////////////////
-					SignupDialog signup = new SignupDialog();
+					SignupDialog signup = new SignupDialog(socketClient);
 					signup.setDefaultCloseOperation(EXIT_ON_CLOSE);
 					signup.setVisible(true);//使signup界面可见
 				}

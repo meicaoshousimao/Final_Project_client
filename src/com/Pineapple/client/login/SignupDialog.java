@@ -1,11 +1,13 @@
 package com.Pineapple.client.login;
 
 import java.awt.Dimension;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.Socket;
 import java.util.Arrays;
 
 import javax.swing.JButton;
@@ -18,9 +20,11 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 import com.Pineapple.client.MainFrame;
-import com.Pineapple.client.dao.DBHelper;
-import com.Pineapple.client.dao.model.Client;
 
+import com.Pineapple.Dao.model.Client;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.ObjectOutputStream;
 public class SignupDialog extends JFrame{
 	
 	private JTextField textFieldName;
@@ -37,10 +41,16 @@ public class SignupDialog extends JFrame{
 	private char[] repassword;
 	
 	private MainFrame mainFrame;//主框架类
+	private Socket socketClient;
+	private DataInputStream in = null;
+	private DataOutputStream out = null;
+	private ObjectOutputStream outBean = null;
+	private String accept;
 	
 	
-	public SignupDialog(){
+	public SignupDialog(Socket socketClient){
 		super();
+		this.socketClient = socketClient;
 		Dimension size = getToolkit().getScreenSize();//提取屏幕尺寸
 		setLocation((size.width - 320) / 2, (size.height - 250) / 2);//设定窗口位置为屏幕中央
 		setSize(320, 250);//设置窗口大小
@@ -100,8 +110,16 @@ public class SignupDialog extends JFrame{
 					           return;
 					       }
 					      try{
+					    	  String username = textFieldName.getText();
+					    	  out = new DataOutputStream(socketClient.getOutputStream());
+					    	  out.writeUTF("SIGNUP");
+					    	  out.flush();
+					    	  out.writeUTF(username);
+					    	  out.flush();
+					    	  in = new DataInputStream(socketClient.getInputStream());
+					    	  accept = in.readUTF();
 					       // 校验用户名是否存在
-					       if (DBHelper.exists(textFieldName.getText())) {
+					       if (accept.equals("true")) {
 					           JOptionPane.showMessageDialog(null, "用户名已存在", "警告信息", JOptionPane.WARNING_MESSAGE);
 					           return;
 					       		}
@@ -115,8 +133,12 @@ public class SignupDialog extends JFrame{
 						client.setPassword(String.valueOf(passwordField.getPassword()));
 						client.setEmail(textFieldEmail.getText());
 						
-						try {					
-							if (DBHelper.save(client)) {
+						try {
+							outBean = new ObjectOutputStream(socketClient.getOutputStream());
+							outBean.writeObject(client);
+							outBean.flush();
+							accept = in.readUTF();							
+							if (accept.equals("true")) {
 								
 								JOptionPane.showMessageDialog(null,
 										"恭喜，用户注册成功", "注册成功成功",
