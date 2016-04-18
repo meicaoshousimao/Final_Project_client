@@ -41,7 +41,7 @@ public class SignupDialog extends JFrame{
 	private char[] repassword;
 	
 	private MainFrame mainFrame;//主框架类
-	private Socket socketClient;
+	//private Socket socketClient;
 	private DataInputStream in = null;
 	private DataOutputStream out = null;
 	private ObjectOutputStream outBean = null;
@@ -50,13 +50,13 @@ public class SignupDialog extends JFrame{
 	
 	public SignupDialog(Socket socketClient){
 		super();
-		this.socketClient = socketClient;
+		//this.socketClient = socketClient;
 		Dimension size = getToolkit().getScreenSize();//提取屏幕尺寸
 		setLocation((size.width - 320) / 2, (size.height - 250) / 2);//设定窗口位置为屏幕中央
 		setSize(320, 250);//设置窗口大小
 		setTitle("用户注册");//this指代本类,因为本类继承的JFrame
 		JPanel signupPanel = new JPanel();
-		mainFrame = new MainFrame();
+		mainFrame = new MainFrame(socketClient);
 		
 		
 		

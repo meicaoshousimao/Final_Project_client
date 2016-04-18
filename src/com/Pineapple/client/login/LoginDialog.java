@@ -38,7 +38,7 @@ public class LoginDialog extends JFrame {
 		this.socketClient = socketClient;
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());//设置界面效果
-			mainFrame = new MainFrame();//构造主框架
+			mainFrame = new MainFrame(socketClient);//构造主框架
 			initialize();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -139,17 +139,14 @@ public class LoginDialog extends JFrame {
 			            out.flush();
 			            out.writeUTF(passStr);
 			            out.flush();
-			            String exist = in.readUTF();
-			            System.out.println(exist);
-			            		            
+			            String exist = in.readUTF();			         			            		            
 			            if (exist.equals("false")) {
 							JOptionPane.showMessageDialog(LoginDialog.this,
 									"Error: Username does't exist.", "Login failed",
 									JOptionPane.ERROR_MESSAGE);
 							return;
 						}
-			            String check = in.readUTF();
-			            System.out.println(check);	
+			            String check = in.readUTF();			            	
 			            if (check.equals("false")) {
 							JOptionPane.showMessageDialog(LoginDialog.this,
 									"Error: Incorrect Password.", "Login failed",

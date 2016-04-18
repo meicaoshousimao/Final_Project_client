@@ -30,7 +30,7 @@ public class MainFrame extends JFrame {
 	private static JLabel czyStateLabel = null;
 	private JSeparator jSeparator2 = null;
 	/////////////////////////////////////////////通信部分////////////////////////////
-	 public Socket socketClient;
+	 private static Socket socketClient;
 	 DataOutputStream out = null;
 	 DataInputStream in = null;
 	
@@ -44,6 +44,7 @@ public class MainFrame extends JFrame {
 	public static void main(String[] args) throws  IOException{
 		
 		Socket socketClient = new Socket(InetAddress.getLocalHost(), 8889);
+		MainFrame.socketClient = socketClient;
 		
 		SplashScreen splashScreen = SplashScreen.getSplashScreen();//？？获取闪屏对象
 		LoginDialog login = new LoginDialog(socketClient);
@@ -81,7 +82,7 @@ public class MainFrame extends JFrame {
 	 */
 	protected MenuBar getFrameMenuBar() {
 		if (frameMenuBar == null) {
-			frameMenuBar = new MenuBar(getDesktopPane(), getStateLabel());
+			frameMenuBar = new MenuBar(getDesktopPane(), getStateLabel(),socketClient);
 		}
 		return frameMenuBar;
 	}
@@ -211,9 +212,10 @@ public class MainFrame extends JFrame {
 	/**
 	 * This is the default constructor
 	 */
-	public MainFrame() {
+	public MainFrame(Socket socketClient) {
 		super();
 		initialize();
+		this.socketClient = socketClient;
 	}
 	
 	/**

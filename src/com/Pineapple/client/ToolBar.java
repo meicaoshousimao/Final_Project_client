@@ -32,9 +32,13 @@ public class ToolBar extends JToolBar{
 		setSize(new Dimension(600, 24));
 		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
 		add(createToolButton(menuBar.getcomputershopItem()));
+		add(createToolButton(menuBar.getcomponentshopItem()));
 		add(createToolButton(menuBar.getshoppingbagItem()));
-		add(createToolButton(menuBar.getmyorderItem()));
+		add(createToolButton(menuBar.getactiveorderItem()));
+		add(createToolButton(menuBar.getdeadorderItem()));
 		add(createToolButton(menuBar.getmyinformationItem()));
+		add(createToolButton(menuBar.getchangepasswordItem()));
+		add(createToolButton(menuBar.getchangeemailItem()));
 		
 		
 	}
