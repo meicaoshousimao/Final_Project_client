@@ -21,9 +21,9 @@ public class MainFrame extends JFrame {
 	private JPanel frameContentPane = null;
 	private MenuBar frameMenuBar = null;
 	private ToolBar toolBar = null;
-	private DesktopPanel desktopPane = null;
+	private static DesktopPanel desktopPane = null;
 	private JPanel statePanel = null;
-	private JLabel stateLabel = null;
+	private static JLabel stateLabel = null;
 	private JLabel nameLabel = null;
 	private JLabel nowDateLabel = null;
 	private JSeparator jSeparator1 = null;
@@ -92,7 +92,7 @@ public class MainFrame extends JFrame {
 	 * 
 	 * @return JDesktopPane
 	 */
-	private DesktopPanel getDesktopPane() {
+	public static DesktopPanel getDesktopPane() {
 		if (desktopPane == null) {
 			desktopPane = new DesktopPanel();
 		}
@@ -164,7 +164,7 @@ public class MainFrame extends JFrame {
 		return czyStateLabel;
 	}
 	
-	public JLabel getStateLabel() {
+	public static JLabel getStateLabel() {
 		if (stateLabel == null) {
 			stateLabel = new JLabel();
 			stateLabel.setText("No window choosed");
@@ -244,5 +244,8 @@ public class MainFrame extends JFrame {
 			frameContentPane.add(getDesktopPane(), CENTER);
 		}
 		return frameContentPane;
+	}
+	public static Socket getSocketClient(){
+		return socketClient;
 	}
 }
