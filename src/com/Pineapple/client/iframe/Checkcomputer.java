@@ -175,7 +175,7 @@ public class Checkcomputer extends JInternalFrame{
 				  Timestamp datetime = new Timestamp(System.currentTimeMillis());//获取系统当前时间
 				  String client = MainFrame.getCzyStateLabel().getText();//获取用户名				  
 				  String id_order = client+df.format(datetime);//合成订单编号				  
-				  String state = "待发货";//设置订单状态
+				  String state = "0";//设置订单状态
 				  float price = 0;
 				  computerlist = new ArrayList<String>();
 				  componentlist = new ArrayList<String>();
@@ -193,7 +193,6 @@ public class Checkcomputer extends JInternalFrame{
 						String id_processor = table.getValueAt(j, 11).toString();
 						float price_computer = (float) table.getValueAt(j, 5);
 						price = price + price_computer;	
-						if (componentlist.contains(id_color))
 						computerlist.add(id_computer);//商品列表用于修改对应库存
 						componentlist.add(id_color);//配件列表用于修改对应库存
 						componentlist.add(id_size);
@@ -220,7 +219,7 @@ public class Checkcomputer extends JInternalFrame{
 						outBean.writeObject(componentlist);
 						outBean.flush();
 			    	    in = new DataInputStream(socketClient.getInputStream());
-			    	    accept = in.readUTF();
+			    	    accept = in.readUTF();			    	   
 			    	    if (accept.equals("True")){//订单核查成功，弹出对话框，选择付款方式，填写收货地址，包装订单并发送			    	    	
 			    	    	payframe = new PayandDelivery();		    	    	
 			    	    	desktopPane = MainFrame.getDesktopPane();
