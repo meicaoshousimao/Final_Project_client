@@ -6,6 +6,10 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyVetoException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -20,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
+import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -35,6 +40,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 
 import com.Pineapple.Dao.model.Computer;
 import com.Pineapple.Dao.model.Order;
@@ -60,7 +66,8 @@ public class Checkcomputer extends JInternalFrame{
 	private JDesktopPane desktopPane;
 	private JLabel stateLabel;
 	private PayandDelivery payframe;
-	
+	private String oldvalue;
+		
 	public Checkcomputer() {
 		super();//先构造一个内部窗口
 		
@@ -107,11 +114,76 @@ public class Checkcomputer extends JInternalFrame{
 								return String.class;
 						}
 					}
+					boolean[] editables = {true,false,false,false, false,false,true,true,true,true,true,true};
+					   public boolean isCellEditable(int row, int col)
+					   {
+					      return editables[col];
+					   }
+					
 			
 				};
 				table.setModel(dftm);
 		String[] tableHeads = new String[]{ "选取","图片","型号", "名称", "类型", "价格","颜色","屏幕尺寸","硬盘","内存","显卡","处理器"};//添加表头
 		dftm.setColumnIdentifiers(tableHeads);//把表头设置为每栏的标示
+		TableColumn column = null;	//把电脑名一栏画大一点	
+		    column = table.getColumnModel().getColumn(3);		   
+		    column.setPreferredWidth(100); //third column is bigger
+		    table.addMouseListener(new MouseAdapter(){
+
+		         public void mouseClicked(MouseEvent e){
+
+		           //记录进入编辑状态前单元格得数据
+
+		              oldvalue = table.getValueAt(table.getSelectedRow(),table.getSelectedColumn()).toString();		 
+		              if(table.getSelectedColumn()>5){
+		            	//给配置栏加combobox
+						    
+						    	int i = table.getSelectedColumn();
+						    	TableColumn newColumn = table.getColumnModel().getColumn(i);
+						    	JComboBox comboBox = new JComboBox();
+						    	List<String> itemlist = null;
+						    	if (i==6){
+						    		itemlist = searchitemlist("COMBOCOLOR");		    		
+						    	}
+						    	if (i==7){
+						    		itemlist = searchitemlist("COMBOSIZE");		    		
+						    	}	
+						    	if (i==8){
+						    		itemlist = searchitemlist("COMBOSTOCK");		    		
+						    	}	
+						    	if (i==9){
+						    		itemlist = searchitemlist("COMBOMEMORY");		    		
+						    	}	
+						    	if (i==10){
+						    		itemlist = searchitemlist("COMBOGRAPHIC");		    		
+						    	}	
+						    	if (i==11){
+						    		itemlist = searchitemlist("COMBOPROCESSOR");		    		
+						    	}	
+						    	setupCombo(comboBox,itemlist);	
+						    	
+						    	comboBox.addActionListener(new ActionListener(){
+									@Override
+									public void actionPerformed(ActionEvent e) {								
+										String pre_component = oldvalue;
+										String SelectedItem = (String) comboBox.getSelectedItem();
+										if(SelectedItem.equals(oldvalue)){}
+										else{
+											double nowprice =(double) table.getValueAt(table.getSelectedRow(), 5);
+											double newPrice = getnewPrice(SelectedItem,pre_component,nowprice);	
+											dftm.setValueAt(newPrice, table.getSelectedRow(), 5);
+											TableColumn newColumn = table.getColumnModel().getColumn(table.getSelectedColumn());
+											newColumn.setCellEditor(null);
+										}										
+									}
+						    		
+						    	});						    	
+						    	newColumn.setCellEditor(new DefaultCellEditor(comboBox));
+						    }	
+		              }
+		                
+
+		         });
 ///////////////////////////////////////////////////////////////////////////////////////////////
 		//把表格放置到有滚动条的面板上,控制表格位置
 		final JScrollPane scrollPane = new JScrollPane(table);
@@ -154,6 +226,7 @@ public class Checkcomputer extends JInternalFrame{
 		    	    inBean = new ObjectInputStream(socketClient.getInputStream());
 		    	    List<Computer> list = (List<Computer>)inBean.readObject();
 		    	    updateTable(list, dftm);
+		    	  	  
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						} catch (ClassNotFoundException e1) {
@@ -164,6 +237,7 @@ public class Checkcomputer extends JInternalFrame{
 		});
 		setupComponet(showAllButton, 5, 0, 1, 1, false);
 		showAllButton.setText("显示全部商品");
+		
 ////////////////////////////////////////////////////////////////////////////////////////////
 		
 		final JButton buynowButton = new JButton();
@@ -176,7 +250,7 @@ public class Checkcomputer extends JInternalFrame{
 				  String client = MainFrame.getCzyStateLabel().getText();//获取用户名				  
 				  String id_order = client+df.format(datetime);//合成订单编号				  
 				  String state = "0";//设置订单状态
-				  float price = 0;
+				  double price = 0;
 				  computerlist = new ArrayList<String>();
 				  componentlist = new ArrayList<String>();
 				  ////////////////////////////////////////////////////////////////////////////////////////
@@ -191,7 +265,7 @@ public class Checkcomputer extends JInternalFrame{
 						String id_memory = table.getValueAt(j, 9).toString();
 						String id_graphic = table.getValueAt(j, 10).toString();
 						String id_processor = table.getValueAt(j, 11).toString();
-						float price_computer = (float) table.getValueAt(j, 5);
+						double price_computer = (double) table.getValueAt(j, 5);
 						price = price + price_computer;	
 						computerlist.add(id_computer);//商品列表用于修改对应库存
 						componentlist.add(id_color);//配件列表用于修改对应库存
@@ -220,18 +294,19 @@ public class Checkcomputer extends JInternalFrame{
 						outBean.flush();
 			    	    in = new DataInputStream(socketClient.getInputStream());
 			    	    accept = in.readUTF();			    	   
-			    	    if (accept.equals("True")){//订单核查成功，弹出对话框，选择付款方式，填写收货地址，包装订单并发送			    	    	
-			    	    	payframe = new PayandDelivery();		    	    	
-			    	    	desktopPane = MainFrame.getDesktopPane();
-			    	    	desktopPane.add(payframe);			    	    	
-			    	    	stateLabel = MainFrame.getStateLabel();
-			    			stateLabel.setText(payframe.getTitle());//把状态栏中的标签设置成当前窗体名字
-			    			payframe.setSelected(true);			    						    	    				    	    				    
-			    	    }
-			    	    else//订单不成功提示：库存不足
-			    	    {	   JOptionPane.showMessageDialog(null,
-								"商品库存不足.", "交易失败",
-								JOptionPane.ERROR_MESSAGE);}
+					    	    if (accept.equals("True")){//订单核查成功，弹出对话框，选择付款方式，填写收货地址，包装订单并发送			    	    	
+					    	    	payframe = new PayandDelivery();		    	    	
+					    	    	desktopPane = MainFrame.getDesktopPane();
+					    	    	desktopPane.add(payframe);			    	    	
+					    	    	stateLabel = MainFrame.getStateLabel();
+					    			stateLabel.setText(payframe.getTitle());//把状态栏中的标签设置成当前窗体名字
+					    			payframe.setSelected(true);			    						    	    				    	    				    
+					    	    }
+					    	    else//订单不成功提示：库存不足
+					    	    {	   JOptionPane.showMessageDialog(null,
+										"商品库存不足.", "交易失败",
+										JOptionPane.ERROR_MESSAGE);
+					    	    }
 							} catch (IOException e1) {
 								e1.printStackTrace();
 							} catch (PropertyVetoException e1) {
@@ -284,6 +359,17 @@ public class Checkcomputer extends JInternalFrame{
 			dftm.removeRow(0);//把表中第i行现有内容去掉		
 		Iterator iterator = list.iterator();//创建一个迭代器，用于遍历链表
 		checkbox = new JCheckBox("");
+/*		checkbox.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(checkbox.isSelected()){
+					
+				}
+				
+			}
+			
+		});*/
 		//button = new JButton("自定义配置");
 		int i=0;
 		while (iterator.hasNext()) {
@@ -313,8 +399,58 @@ public class Checkcomputer extends JInternalFrame{
 	public List<String> getComponentlist(){
 		return componentlist;
 	}
-	
-	
+	/**
+	 * 把项目串放到combobox里
+	 * @param combobox
+	 * @param itemstring
+	 */
+	public void setupCombo (JComboBox comboBox, List<String> itemlist){
+		Iterator iterator = itemlist.iterator();
+		while(iterator.hasNext()){
+			String item = (String) iterator.next();
+			comboBox.addItem(item);
+		}
+		
+	}
+	/**
+	 * 向数据库查询配件可选项
+	 * @param name
+	 * @return
+	 */
+	public List<String> searchitemlist(String name){
+		try {
+			out = new DataOutputStream(socketClient.getOutputStream());
+			out.writeUTF(name);
+			out.flush();
+			inBean = new ObjectInputStream(socketClient.getInputStream());
+    	    List<String> itemlist = (List<String>)inBean.readObject();
+    	    return itemlist;
+			} catch (IOException | ClassNotFoundException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+				return null;
+				}	
+	}
+	public double getnewPrice(String item,String precomponent,double price){
+		try {
+			out = new DataOutputStream(socketClient.getOutputStream());
+			out.writeUTF("NEWPRICE");
+			out.flush();
+			out.writeUTF(item);
+			out.flush();
+			out.writeUTF(precomponent);
+			out.flush();
+			out.writeDouble(price);
+			out.flush();
+			inBean = new ObjectInputStream(socketClient.getInputStream());
+    	    double newPrice = (double)inBean.readObject();
+    	    return newPrice;
+			} catch (IOException | ClassNotFoundException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+				return 0;
+				}	
+	}
 
 }
 
