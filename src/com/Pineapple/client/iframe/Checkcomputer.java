@@ -10,6 +10,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.beans.PropertyVetoException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -67,6 +69,8 @@ public class Checkcomputer extends JInternalFrame{
 	private JLabel stateLabel;
 	private PayandDelivery payframe;
 	private String oldvalue;
+	int Selectedrow = -1;
+	int Selectedcolumn = -1;
 		
 	public Checkcomputer() {
 		super();//先构造一个内部窗口
@@ -97,7 +101,7 @@ public class Checkcomputer extends JInternalFrame{
 						case 4:
 							return String.class;
 						case 5:
-							return float.class;
+							return double.class;
 						case 6:
 							return String.class;
 						case 7:
@@ -128,61 +132,23 @@ public class Checkcomputer extends JInternalFrame{
 		TableColumn column = null;	//把电脑名一栏画大一点	
 		    column = table.getColumnModel().getColumn(3);		   
 		    column.setPreferredWidth(100); //third column is bigger
-		    table.addMouseListener(new MouseAdapter(){
+		    table.addMouseMotionListener(new MouseMotionListener(){
 
-		         public void mouseClicked(MouseEvent e){
+				@Override
+				public void mouseDragged(MouseEvent e) {
+					// TODO Auto-generated method stub
+					
+				}
 
-		           //记录进入编辑状态前单元格得数据
-
-		              oldvalue = table.getValueAt(table.getSelectedRow(),table.getSelectedColumn()).toString();		 
-		              if(table.getSelectedColumn()>5){
-		            	//给配置栏加combobox
-						    
-						    	int i = table.getSelectedColumn();
-						    	TableColumn newColumn = table.getColumnModel().getColumn(i);
-						    	JComboBox comboBox = new JComboBox();
-						    	List<String> itemlist = null;
-						    	if (i==6){
-						    		itemlist = searchitemlist("COMBOCOLOR");		    		
-						    	}
-						    	if (i==7){
-						    		itemlist = searchitemlist("COMBOSIZE");		    		
-						    	}	
-						    	if (i==8){
-						    		itemlist = searchitemlist("COMBOSTOCK");		    		
-						    	}	
-						    	if (i==9){
-						    		itemlist = searchitemlist("COMBOMEMORY");		    		
-						    	}	
-						    	if (i==10){
-						    		itemlist = searchitemlist("COMBOGRAPHIC");		    		
-						    	}	
-						    	if (i==11){
-						    		itemlist = searchitemlist("COMBOPROCESSOR");		    		
-						    	}	
-						    	setupCombo(comboBox,itemlist);	
-						    	
-						    	comboBox.addActionListener(new ActionListener(){
-									@Override
-									public void actionPerformed(ActionEvent e) {								
-										String pre_component = oldvalue;
-										String SelectedItem = (String) comboBox.getSelectedItem();
-										if(SelectedItem.equals(oldvalue)){}
-										else{
-											double nowprice =(double) table.getValueAt(table.getSelectedRow(), 5);
-											double newPrice = getnewPrice(SelectedItem,pre_component,nowprice);	
-											dftm.setValueAt(newPrice, table.getSelectedRow(), 5);
-											TableColumn newColumn = table.getColumnModel().getColumn(table.getSelectedColumn());
-											newColumn.setCellEditor(null);
-										}										
-									}
-						    		
-						    	});						    	
-						    	newColumn.setCellEditor(new DefaultCellEditor(comboBox));
-						    }	
-		              }
-		                
-
+				@Override
+				public void mouseMoved(MouseEvent e) {
+					// TODO Auto-generated method stub
+					 Selectedrow= table.rowAtPoint(e.getPoint());
+					 Selectedcolumn = table.columnAtPoint(e.getPoint());
+					if (Selectedrow != -1&&Selectedcolumn>5){
+						oldvalue = (String) table.getValueAt(Selectedrow, Selectedcolumn);
+					}
+				}						         		               
 		         });
 ///////////////////////////////////////////////////////////////////////////////////////////////
 		//把表格放置到有滚动条的面板上,控制表格位置
@@ -226,7 +192,47 @@ public class Checkcomputer extends JInternalFrame{
 		    	    inBean = new ObjectInputStream(socketClient.getInputStream());
 		    	    List<Computer> list = (List<Computer>)inBean.readObject();
 		    	    updateTable(list, dftm);
-		    	  	  
+		    	  //给配置栏加combobox
+				    for(int i=6;i<12;i++){
+				    	TableColumn newColumn = table.getColumnModel().getColumn(i);
+				    	JComboBox comboBox = new JComboBox();
+				    	List<String> itemlist = null;
+				    	if (i==6){
+				    		itemlist = searchitemlist("COMBOCOLOR");		    		
+				    	}
+				    	if (i==7){
+				    		itemlist = searchitemlist("COMBOSIZE");		    		
+				    	}	
+				    	if (i==8){
+				    		itemlist = searchitemlist("COMBOSTOCK");		    		
+				    	}	
+				    	if (i==9){
+				    		itemlist = searchitemlist("COMBOMEMORY");		    		
+				    	}	
+				    	if (i==10){
+				    		itemlist = searchitemlist("COMBOGRAPHIC");		    		
+				    	}	
+				    	if (i==11){
+				    		itemlist = searchitemlist("COMBOPROCESSOR");		    		
+				    	}	
+				    	setupCombo(comboBox,itemlist);	
+				    	
+				    	comboBox.addActionListener(new ActionListener(){
+							@Override
+							public void actionPerformed(ActionEvent e) {								
+								String pre_component = oldvalue;
+								String SelectedItem = (String) comboBox.getSelectedItem();
+								if(SelectedItem.equals(oldvalue)){}
+								else{
+									double nowprice =(double) table.getValueAt(table.getSelectedRow(), 5);
+									double newPrice = getnewPrice(SelectedItem,pre_component,nowprice);	
+									dftm.setValueAt(newPrice, table.getSelectedRow(), 5);									
+								}										
+							}
+				    		
+				    	});						    	
+				    	newColumn.setCellEditor(new DefaultCellEditor(comboBox));
+				    }			    			    	  	  
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						} catch (ClassNotFoundException e1) {
