@@ -5,7 +5,13 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -16,19 +22,28 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 
 import com.Pineapple.Dao.model.Computer;
+import com.Pineapple.Dao.model.Order;
+import com.Pineapple.client.MainFrame;
 
 public class Checkactiveorder extends JInternalFrame{
 	private JTable table;
 	private Socket socketClient;
-	public Checkactiveorder(Socket socketClient) {
+	private DataInputStream in = null;
+	private DataOutputStream out = null;
+	private ObjectInputStream inBean = null;
+	private ObjectOutputStream outBean = null;
+	private String accept;
+	public Checkactiveorder() {
 		super();//先构造一个内部窗口
-		this.socketClient = socketClient;
+		this.socketClient = MainFrame.getSocketClient();
 		setIconifiable(true);//开启内部窗口最小化功能
 		setClosable(true);//开启内部窗口关闭功能
 		setTitle("当前订单");//设置窗口标题
@@ -36,12 +51,54 @@ public class Checkactiveorder extends JInternalFrame{
 		setBounds(100, 100, 600, 375);//窗口大小设置
 
 		table = new JTable();//新建一个表
-		table.setEnabled(false);//设置表格使能关闭，即不与用户交互
+		table.setEnabled(true);//设置表格使能关闭，即不与用户交互
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);//表格自动调整尺寸方式
-		final DefaultTableModel dftm = (DefaultTableModel) table.getModel();//表格模型强制转换为向量模型
-		String[] tableHeads = new String[]{"型号", "名称", "类型", "价格", "图片",};//添加表头
+		final DefaultTableModel dftm = new DefaultTableModel()//重写一个表格格式
+				{
+					public Class<?> getColumnClass(int column)
+					{
+						switch(column)
+						{
+						case 0:
+							return Boolean.class;
+						case 1:
+							return String.class;
+						case 2:
+							return String.class;
+						case 3:
+							return Timestamp.class;
+						case 4:
+							return String.class;
+						case 5:
+							return String.class;
+						case 6:
+							return String.class;
+							default:
+								return String.class;
+						}
+					}
+					boolean[] editables = {true,false,false,false, false,false,false};
+					   public boolean isCellEditable(int row, int col)
+					   {
+					      return editables[col];
+					   }
+					
+			
+				};
+		table.setModel(dftm);
+		String[] tableHeads = new String[]{"选择","订单状态", "单号", "日期", "总价", "支付方式","邮寄地址"};//添加表头
 		dftm.setColumnIdentifiers(tableHeads);//把表头设置为每栏的标示
-		
+		for(int i=0;i<7;i++){
+			TableColumn column = null;	//把电脑名一栏画大一点	
+		    column = table.getColumnModel().getColumn(i);
+		    if(i==0)column.setPreferredWidth(30);
+		    else if(i==1)column.setPreferredWidth(100);
+		    else if(i==2)column.setPreferredWidth(150);
+		    else if(i==5)column.setPreferredWidth(100);
+		    else if(i==6)column.setPreferredWidth(150);
+		    else if(i==3)column.setPreferredWidth(100);
+		    
+		}
 		//把表格放置到有滚动条的面板上,控制表格位置
 		final JScrollPane scrollPane = new JScrollPane(table);
 		final GridBagConstraints gridBagConstraints_6 = new GridBagConstraints();
@@ -55,24 +112,121 @@ public class Checkactiveorder extends JInternalFrame{
 		getContentPane().add(scrollPane, gridBagConstraints_6);
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-		setupComponet(new JLabel("                    "), 2, 1, 2, 1, false);
-		setupComponet(new JLabel("                    "), 5, 1, 2, 1, false);
+		setupComponet(new JLabel("                 "), 2, 1, 2, 1, false);
+		setupComponet(new JLabel("                 "), 5, 1, 2, 1, false);
 		setupComponet(new JLabel("          "), 0, 1, 1, 1, false);
 		setupComponet(new JLabel("          "), 8, 1, 1, 1, false);
-		final JButton buynowButton = new JButton();
-		//buynowButton.addActionListener(new QueryAction(dftm));
-		setupComponet(buynowButton, 1, 1, 1, 1, false);
-		buynowButton.setText("确认付款");
+		final JButton showButton = new JButton();
+		showButton.addActionListener(new ActionListener(){
+			public void actionPerformed(final ActionEvent e){				
+				  try {
+					  out = new DataOutputStream(socketClient.getOutputStream());
+						out.writeUTF("SHOWACTIVEORDER");
+					    out.flush();
+					    out.writeUTF(MainFrame.getCzyStateLabel().getText());
+					    out.flush();
+					inBean = new ObjectInputStream(socketClient.getInputStream());
+					List<Order> list = (List<Order>)inBean.readObject();
+				    updateTable(list, dftm);	
+				} catch (IOException | ClassNotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				    
+			}
+			
+		});
+		setupComponet(showButton, 1, 1, 1, 1, false);
+		showButton.setText("刷新订单列表");
+		showButton.doClick();
 		
-		final JButton deleteButton = new JButton();
-		//deleteButton.addActionListener(new QueryAction(dftm));
-		setupComponet(deleteButton, 4, 1, 1, 1, false);
-		deleteButton.setText("确认收货");
+		final JButton receiveButton = new JButton();
+		receiveButton.addActionListener(new ActionListener(){
+			public void actionPerformed(final ActionEvent e){
+				//遍历选中的订单
+				  for(int j=0;j<table.getRowCount();j++){
+					 Boolean checked = Boolean.valueOf(table.getValueAt(j,0).toString()) ;//检查该行是否被选中
+					 if(checked){//如果被选中，则执行：则操作数据库改变订单状态；
+						String id_order = table.getValueAt(j, 2).toString();
+						String state_order = table.getValueAt(j, 1).toString();
+						try {
+							if(state_order.equals("shipping")){
+								out = new DataOutputStream(socketClient.getOutputStream());
+								out.writeUTF("ARRIVEORDER");
+							    out.flush();
+							    out.writeUTF(id_order);
+							    out.flush();
+							    in = new DataInputStream(socketClient.getInputStream());
+					    	    accept = in.readUTF();			    	   
+					    	    if (accept.equals("True")){
+					    	    	JOptionPane.showMessageDialog(null,
+											"订单'"+id_order+"'收货成功.", "收货成功",
+											JOptionPane.INFORMATION_MESSAGE);
+					    	    }
+							}else {
+								JOptionPane.showMessageDialog(null,
+											"订单'"+id_order+"'当前无法收货.", "收货失败",
+											JOptionPane.ERROR_MESSAGE);
+							}
+							
+						    
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}											
+					 }
+				  }
+				  showButton.doClick();				    
+			}
+			
+		});
+		setupComponet(receiveButton, 4, 1, 1, 1, false);
+		receiveButton.setText("确认收货");
 	
-		final JButton clearButton = new JButton();
-		//addtobagButton.addActionListener(new QueryAction(dftm));
-		setupComponet(clearButton, 7, 1, 1, 1, false);
-		clearButton.setText("取消订单");
+		final JButton cancelButton = new JButton();
+		cancelButton.addActionListener(new ActionListener(){
+			public void actionPerformed(final ActionEvent e){
+				//遍历选中的订单
+				  for(int j=0;j<table.getRowCount();j++){
+					 Boolean checked = Boolean.valueOf(table.getValueAt(j,0).toString()) ;//检查该行是否被选中
+					 if(checked){//如果被选中，则执行：则操作数据库删除订单和订单所有项；
+						String id_order = table.getValueAt(j, 2).toString();
+						String state_order = table.getValueAt(j, 1).toString();
+						try {
+							if(state_order.equals("to be shipped")){
+								out = new DataOutputStream(socketClient.getOutputStream());
+								out.writeUTF("CANCELORDER");
+							    out.flush();
+							    out.writeUTF(id_order);
+							    out.flush();
+							    in = new DataInputStream(socketClient.getInputStream());
+					    	    accept = in.readUTF();			    	   
+					    	    if (accept.equals("True")){
+					    	    	JOptionPane.showMessageDialog(null,
+											"订单'"+id_order+"'取消成功.", "订单取消成功",
+											JOptionPane.INFORMATION_MESSAGE);
+					    	    }
+							}else {
+								JOptionPane.showMessageDialog(null,
+											"订单'"+id_order+"'已发货，无法取消.", "订单取消失败",
+											JOptionPane.ERROR_MESSAGE);
+							}
+							
+						    
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}											
+					 }
+				  }
+				  showButton.doClick(); 
+			}			
+		});
+		setupComponet(cancelButton, 7, 1, 1, 1, false);
+		cancelButton.setText("取消订单");
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		
 }
 	
 	/**
@@ -99,25 +253,31 @@ public class Checkactiveorder extends JInternalFrame{
 		getContentPane().add(component, gridBagConstrains);
 	}
 	
-	/**
-	 * 把数据库查询结果表投放到TABLE模型中
-	 * @param list
-	 * @param dftm
-	 */
-	private void updateTable(List<Computer> list, final DefaultTableModel dftm) {
+	private void updateTable(List<Order> list, final DefaultTableModel dftm) {
 		int num = dftm.getRowCount();//判断表有多少行
 		for (int i = 0; i < num; i++)
 			dftm.removeRow(0);//把表中第i行现有内容去掉
 		Iterator iterator = list.iterator();//创建一个迭代器，用于遍历链表
+		int i=0;//代表行号
 		while (iterator.hasNext()) {
-			Computer computer = (Computer) iterator.next();//获取链表中的元素
-			Vector rowData = new Vector();
-			rowData.add(computer.getId());
-			rowData.add(computer.getName());
-			rowData.add(computer.getType());
-			rowData.add(computer.getPrice());
-			rowData.add(computer.getPicture());
-			dftm.addRow(rowData);
+			Order order = (Order) iterator.next();//获取链表中的元素
+			dftm.addRow(new Object[0]);
+			dftm.setValueAt(false,i,0);
+			dftm.setValueAt(order.getID(), i, 2);
+			dftm.setValueAt(order.getPrice(), i, 4);
+			dftm.setValueAt(order.getDatetime(), i, 3);
+			dftm.setValueAt(order.getPayment(), i, 5);
+			dftm.setValueAt(order.getDelivery(), i, 6);
+			String state = order.getState();
+			if(state.equals("0")){
+				dftm.setValueAt("to be shipped", i, 1);}
+			else if (state.equals("1")){
+				dftm.setValueAt("shipping", i, 1);}
+			else if (state.equals("2")){
+				dftm.setValueAt("finished", i, 1);}
+			else if (state.equals("4")){
+				dftm.setValueAt("canceled", i, 1);}			
+			i++;	
 		}
 	}
 	

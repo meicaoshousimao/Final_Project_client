@@ -13,6 +13,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -26,8 +27,10 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+import com.Pineapple.Dao.model.Component;
 import com.Pineapple.Dao.model.Computer;
 import com.Pineapple.Dao.model.Order;
+import com.Pineapple.Dao.model.Order_detial;
 import com.Pineapple.client.MainFrame;
 import com.Pineapple.client.login.LoginDialog;
 
@@ -40,10 +43,12 @@ public class PayandDelivery extends JInternalFrame{
 	private final static ButtonGroup buttonGroup = new ButtonGroup();
 	private static JTextField textFieldaddress;
 	
-	private ObjectOutputStream outBean = null;
 	private DataInputStream in = null;
+	private DataOutputStream out = null;
+	private ObjectInputStream inBean = null;
+	private ObjectOutputStream outBean = null;
 	private String accept;
-	public PayandDelivery() {
+	public PayandDelivery(Order order,List<Order_detial> orderdetiallist, Map<String, Integer> computermap,Map<String, Integer> componentmap) {
 		super();//先构造一个内部窗口
 		setTitle("Payment&Delivery");
 		setIconifiable(true);//开启内部窗口最小化功能
@@ -85,12 +90,21 @@ public class PayandDelivery extends JInternalFrame{
 							@Override
 							public void actionPerformed(ActionEvent e) {
 								Socket socketclient = MainFrame.getSocketClient();
-								Order order = Checkcomputer.getOrder();
 								order.setPayment(getPaymentmethod());
 								order.setDelivery(getAddress());
 								try {
+									out = new DataOutputStream(socketclient.getOutputStream());
+									out.writeUTF("SAVEORDER");
+						    	    out.flush();
+						    	    outBean = new ObjectOutputStream(socketclient.getOutputStream());						
+									outBean.writeObject(computermap);
+									outBean.flush();
+									outBean.writeObject(componentmap);
+									outBean.flush();
 									outBean = new ObjectOutputStream(socketclient.getOutputStream());
 									outBean.writeObject(order);
+									outBean.flush();
+									outBean.writeObject(orderdetiallist);
 									outBean.flush();
 									in = new DataInputStream(socketclient.getInputStream());
 									accept = in.readUTF();
