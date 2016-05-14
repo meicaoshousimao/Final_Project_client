@@ -371,8 +371,8 @@ public class MenuBar extends JMenuBar{
 			if (iFrame == null || iFrame.isClosed()) {
 				iFrame = (JInternalFrame) constructor
 						.newInstance();//使用内部窗体构造器，构造一个新窗体
-				Field field1=clazz.getDeclaredField("socketClient");
-				field1.set(iFrame, socketClient);
+			/*	Field field1=clazz.getDeclaredField("socketClient");
+				field1.set(iFrame, socketClient);*/
 				iFrames.put(item, iFrame);//把新窗体至于内部窗体哈希表中
 				iFrame.setFrameIcon(item.getIcon());//内部窗体图标取自菜单项图标
 				iFrame.setLocation(nextFrameX, nextFrameY);//设置内部窗体位置
