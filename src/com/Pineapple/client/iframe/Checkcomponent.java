@@ -23,6 +23,7 @@ import javax.swing.table.DefaultTableModel;
 
 import com.Pineapple.Dao.model.Component;
 import com.Pineapple.Dao.model.Computer;
+import com.Pineapple.client.MainFrame;
 
 public class Checkcomponent extends JInternalFrame{
 	private JTable table;
@@ -30,9 +31,9 @@ public class Checkcomponent extends JInternalFrame{
 	//private JComboBox conditionOperation;
 	private JComboBox conditionName;
 	private Socket socketClient;
-	public Checkcomponent(Socket socketClient) {
+	public Checkcomponent() {
 		super();//先构造一个内部窗口
-		this.socketClient = socketClient;
+		this.socketClient = MainFrame.getSocketClient();
 		setIconifiable(true);//开启内部窗口最小化功能
 		setClosable(true);//开启内部窗口关闭功能
 		setTitle("配件商城");//设置窗口标题
